@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fuzzy Text Matching Tool</title>
+    <style>
+        textarea {
+            width: 95%;
+            height: 150px;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Fuzzy Text Matching Tool</h1>
+
+<table>
+    <tr>
+        <th>List 1</th>
+        <th>List 2</th>
+        <th>Matching Percentage</th>
+    </tr>
+    <tr>
+        <td><textarea id="list1" placeholder="Enter items, one per line..."></textarea></td>
+        <td><textarea id="list2" placeholder="Enter items, one per line..."></textarea></td>
+        <td><textarea id="output" readonly></textarea></td>
+    </tr>
+</table>
+
+<button onclick="processMatch()">Process</button>
+
+<script>
+    function levenshteinDistance(s, t) {
+        const dp = Array.from({ length: s.length + 1 }, () => Array(t.length + 1).fill(0));
+
+        for (let i = 0; i <= s.length; i++) dp[i][0] = i;
+        for (let j = 0; j <= t.length; j++) dp[0][j] = j;
+
+        for (let i = 1; i <= s.length; i++) {
+            for (let j = 1; j <= t.length; j++) {
+                if (s[i - 1] === t[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]) + 1;
+                }
+            }
+        }
+
+        return dp[s.length][t.length];
+    }
+
+    function calculateSimilarity(s1, s2) {
+        const distance = levenshteinDistance(s1, s2);
+        const maxLength = Math.max(s1.length, s2.length);
+        return ((1 - distance / maxLength) * 100).toFixed(2) + "%";
+    }
+
+    function processMatch() {
+        const list1 = document.getElementById('list1').value.trim().split('\n');
+        const list2 = document.getElementById('list2').value.trim().split('\n');
+        let results = '';
+
+        for (let i = 0; i < Math.min(list1.length, list2.length); i++) {
+            const similarity = calculateSimilarity(list1[i].trim(), list2[i].trim());
+            results += similarity + '\n';
+        }
+
+        document.getElementById('output').value = results.trim();
+    }
+</script>
+
+</body>
+</html>
